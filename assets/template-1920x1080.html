@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<!--
+  宣传型架构图骨架 · 1920×1080 · 浅色手绘卡片风
+  用法：
+    1. 按内容表替换文案（层名 / 卡标题 / 副标题 / 标签）
+    2. 插画未就位时，先加 .illus { visibility: hidden; } 占位，避免破图影响判版
+    3. 出图：bash scripts/export_png.sh 本文件 out.png 1920 1080 2
+  结构约定：所有卡片 = ptop（左标题+副标题 / 右插画）+ chips（下方整行铺开）
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>宣传型架构图骨架</title>
+<style>
+  :root {
+    --bg: #F8F4ED;
+    --ink: #1E3A5C;
+    --sub: #5C6E8A;
+    --orange: #E45A2B;
+    --green: #4F8A54;
+    --yellow: #E9A63C;
+    --blue: #3E6FB0;
+    --band: rgba(30, 58, 92, 0.045);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "PingFang SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+    display: flex; flex-direction: column;
+    padding: 46px 68px 40px;
+    gap: 12px;
+  }
+
+  /* ===== 头部 ===== */
+  .topbar { display: flex; align-items: center; gap: 14px; flex: none; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 14px; border-radius: 999px;
+    background: #fff; border: 1.5px solid var(--orange);
+    font-size: 13px; font-weight: 800; letter-spacing: 2px; color: var(--orange);
+  }
+  .lede { font-size: 13px; color: var(--sub); letter-spacing: 1px; }
+  .titlearea { flex: none; margin: 2px 0 6px; }
+  .titlearea h1 { font-size: 46px; font-weight: 900; letter-spacing: 3px; line-height: 1.15; }
+  .titlearea h1 em { font-style: normal; color: var(--orange); }
+  .titlearea .sub { margin-top: 6px; font-size: 15px; color: var(--sub); letter-spacing: 1px; }
+
+  /* ===== 层 ===== */
+  .layers { flex: 1; display: grid; grid-template-rows: 110fr 228fr 175fr 232fr; gap: 12px; min-height: 0; }
+  .layer {
+    display: flex; gap: 14px; padding: 12px;
+    background: var(--band); border-radius: 16px; min-height: 0;
+  }
+  .lt {
+    width: 106px; flex: none; display: flex; flex-direction: column; justify-content: center;
+    gap: 4px; padding-left: 12px; border-left: 5px solid var(--orange);
+  }
+  .lt b { font-size: 18px; font-weight: 900; line-height: 1.35; letter-spacing: 1px; }
+  .lt span { font-size: 10px; color: #8A97AC; letter-spacing: 1px; font-weight: 600; white-space: nowrap; }
+  .lb { flex: 1; display: grid; gap: 12px; min-width: 0; min-height: 0; }
+  .lb.c6 { grid-template-columns: repeat(6, 1fr); }
+  .lb.c5 { grid-template-columns: repeat(5, 1fr); }
+  .lb.c4 { grid-template-columns: repeat(4, 1fr); }
+
+  /* ===== 卡片 ===== */
+  .card {
+    background: #fff; border: 1.8px solid var(--c, var(--blue)); border-radius: 18px;
+    padding: 12px 14px; display: flex; flex-direction: column;
+    min-width: 0; min-height: 0; position: relative;
+  }
+  .card .head { display: flex; align-items: center; gap: 8px; flex: none; }
+  .card .head b { font-size: 17px; font-weight: 800; white-space: nowrap; }
+  .card .head .bar { width: 5px; height: 18px; border-radius: 3px; background: var(--c); flex: none; }
+  .card .exp { font-size: 12px; color: var(--sub); margin: 6px 0 8px; flex: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; align-content: flex-start; }
+  .chip {
+    font-size: 12px; font-weight: 600; color: var(--ink);
+    background: color-mix(in srgb, var(--c) 12%, #ffffff);
+    border: 1.5px solid color-mix(in srgb, var(--c) 45%, #ffffff);
+    border-radius: 999px; padding: 3px 9px; white-space: nowrap;
+  }
+
+  /* 场景卡：小卡，插画右侧居中 */
+  .scene { flex-direction: row; align-items: center; gap: 10px; }
+  .scene .num {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--c); color: #fff;
+    font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .scene .tx { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .scene .tx b { font-size: 16px; font-weight: 800; white-space: nowrap; }
+  .scene .tx p { font-size: 12px; color: var(--sub); white-space: nowrap; }
+
+  /* 顶部行：左标题+副标题，右插画 */
+  .ptop { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex: none; }
+  .ptxt { flex: 1; min-width: 0; }
+  .ptop .illus { position: static; height: 88px; width: auto; flex: none; }
+
+  /* ===== 插画 ===== */
+  .illus { position: absolute; mix-blend-mode: multiply; pointer-events: none; }
+  .scene .illus { height: 62px; right: 8px; top: 50%; transform: translateY(-50%); }
+  .scene .tx { padding-right: 60px; }
+
+  /* ===== 底部金句 ===== */
+  .foot { flex: none; height: 40px; display: flex; align-items: center; justify-content: center; gap: 16px; }
+  .foot b { font-size: 17px; font-weight: 900; letter-spacing: 6px; }
+  .foot b em { font-style: normal; color: var(--orange); }
+  .foot svg { width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="pill">产品架构 · 全景</span>
+    <span class="lede">四层结构 / 二十余项核心能力</span>
+  </div>
+
+  <div class="titlearea">
+    <h1>某某<em>产品</em>架构全景</h1>
+    <div class="sub">一句话副标题，说明这张图讲什么</div>
+  </div>
+
+  <div class="layers">
+
+    <!-- 层 1 · 场景（6 张小卡） -->
+    <section class="layer">
+      <div class="lt" style="border-color: var(--orange);"><b>业务场景</b><span>SCENARIOS</span></div>
+      <div class="lb c6">
+        <div class="card scene" style="--c: var(--orange);">
+          <img class="illus" src="assets/illus/scene-1.png" alt="">
+          <span class="num">1</span>
+          <div class="tx"><b>场景一</b><p>一句话说明做什么</p></div>
+        </div>
+        <div class="card scene" style="--c: var(--green);">
+          <img class="illus" src="assets/illus/scene-2.png" alt="">
+          <span class="num">2</span>
+          <div class="tx"><b>场景二</b><p>一句话说明做什么</p></div>
+        </div>
+        <div class="card scene" style="--c: var(--yellow);">
+          <img class="illus" src="assets/illus/scene-3.png" alt="">
+          <span class="num">3</span>
+          <div class="tx"><b>场景三</b><p>一句话说明做什么</p></div>
+        </div>
+        <div class="card scene" style="--c: var(--blue);">
+          <img class="illus" src="assets/illus/scene-4.png" alt="">
+          <span class="num">4</span>
+          <div class="tx"><b>场景四</b><p>一句话说明做什么</p></div>
+        </div>
+        <div class="card scene" style="--c: var(--orange);">
+          <img class="illus" src="assets/illus/scene-5.png" alt="">
+          <span class="num">5</span>
+          <div class="tx"><b>场景五</b><p>一句话说明做什么</p></div>
+        </div>
+        <div class="card scene" style="--c: var(--green);">
+          <img class="illus" src="assets/illus/scene-6.png" alt="">
+          <span class="num">6</span>
+          <div class="tx"><b>场景六</b><p>一句话说明做什么</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 层 2 · 平台（5 卡，带副标题与标签） -->
+    <section class="layer">
+      <div class="lt" style="border-color: var(--blue);"><b>服务平台</b><span>PLATFORMS</span></div>
+      <div class="lb c5">
+        <div class="card" style="--c: var(--orange);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>平台一</b></div>
+              <div class="exp">一句话说明这个平台做什么</div>
+            </div>
+            <img class="illus" src="assets/illus/platform-1.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span><span class="chip">标签五</span><span class="chip">标签六</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--blue);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>平台二</b></div>
+              <div class="exp">一句话说明这个平台做什么</div>
+            </div>
+            <img class="illus" src="assets/illus/platform-2.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span><span class="chip">标签五</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--green);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>平台三</b></div>
+              <div class="exp">一句话说明这个平台做什么</div>
+            </div>
+            <img class="illus" src="assets/illus/platform-3.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--yellow);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>平台四</b></div>
+              <div class="exp">一句话说明这个平台做什么</div>
+            </div>
+            <img class="illus" src="assets/illus/platform-4.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--orange);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>平台五</b></div>
+              <div class="exp">一句话说明这个平台做什么</div>
+            </div>
+            <img class="illus" src="assets/illus/platform-5.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span><span class="chip">标签五</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 层 3 · 保障（4 张短卡，无副标题） -->
+    <section class="layer">
+      <div class="lt" style="border-color: var(--green);"><b>保障</b><span>ASSURANCE</span></div>
+      <div class="lb c4">
+        <div class="card" style="--c: var(--blue);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>能力一</b></div>
+            </div>
+            <img class="illus" src="assets/illus/assure-1.png" alt="">
+          </div>
+          <div class="chips"><span class="chip">标签一</span><span class="chip">标签二</span></div>
+        </div>
+        <div class="card" style="--c: var(--orange);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>能力二</b></div>
+            </div>
+            <img class="illus" src="assets/illus/assure-2.png" alt="">
+          </div>
+          <div class="chips"><span class="chip">标签一</span><span class="chip">标签二</span></div>
+        </div>
+        <div class="card" style="--c: var(--green);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>能力三</b></div>
+            </div>
+            <img class="illus" src="assets/illus/assure-3.png" alt="">
+          </div>
+          <div class="chips"><span class="chip">标签一</span><span class="chip">标签二</span></div>
+        </div>
+        <div class="card" style="--c: var(--yellow);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>能力四</b></div>
+            </div>
+            <img class="illus" src="assets/illus/assure-4.png" alt="">
+          </div>
+          <div class="chips"><span class="chip">标签一</span><span class="chip">标签二</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 层 4 · 底座（5 卡，标签最多，行高最大） -->
+    <section class="layer">
+      <div class="lt" style="border-color: var(--yellow);"><b>能力底座</b><span>FOUNDATION</span></div>
+      <div class="lb c5">
+        <div class="card" style="--c: var(--blue);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>底座一</b></div>
+              <div class="exp">一句话说明</div>
+            </div>
+            <img class="illus" src="assets/illus/base-1.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--yellow);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>底座二</b></div>
+              <div class="exp">一句话说明</div>
+            </div>
+            <img class="illus" src="assets/illus/base-2.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span><span class="chip">标签五</span><span class="chip">标签六</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--green);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>底座三</b></div>
+              <div class="exp">一句话说明</div>
+            </div>
+            <img class="illus" src="assets/illus/base-3.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--orange);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>底座四</b></div>
+              <div class="exp">一句话说明</div>
+            </div>
+            <img class="illus" src="assets/illus/base-4.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+            <span class="chip">标签四</span>
+          </div>
+        </div>
+        <div class="card" style="--c: var(--blue);">
+          <div class="ptop">
+            <div class="ptxt">
+              <div class="head"><span class="bar"></span><b>底座五</b></div>
+              <div class="exp">一句话说明</div>
+            </div>
+            <img class="illus" src="assets/illus/base-5.png" alt="">
+          </div>
+          <div class="chips">
+            <span class="chip">标签一</span><span class="chip">标签二</span><span class="chip">标签三</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 底部金句 -->
+  <div class="foot">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 6.2L21 9.3l-4.7 4.3 1.2 6.4L12 17l-5.5 3 1.2-6.4L3 9.3l6.4-1.1L12 2z" fill="#E45A2B"/></svg>
+    <b>数据<em>可信</em>流通 · 价值可信释放</b>
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 6.2L21 9.3l-4.7 4.3 1.2 6.4L12 17l-5.5 3 1.2-6.4L3 9.3l6.4-1.1L12 2z" fill="#E45A2B"/></svg>
+  </div>
+
+</body>
+</html>
